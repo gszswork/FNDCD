@@ -13,60 +13,9 @@ import os
 recall_level_default = 0.95
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-def calc_rocauc(loader, predictor):
-    evaluator = Evaluator('ogbg-molhiv')
-    y_true, y_pred = None, None
-    for graph in loader:
-        graph.to(device)
-        pred_out = predictor(x=graph.x, edge_index=graph.edge_index,
-                             edge_attr=graph.edge_attr, batch=graph.batch)
-        pred_score = F.softmax(pred_out, dim=1)[:, 1].unsqueeze(1)
-        graph.y = graph.y.unsqueeze(1)
-        if y_true == None:
-            y_true = graph.y
-            y_pred = pred_score
-        else:
-            y_true = torch.cat([y_true, graph.y], dim=0)
-            y_pred = torch.cat([y_pred, pred_score], dim=0)
-    input_dict = {'y_true':y_true, 'y_pred':y_pred}
-    rocauc = evaluator.eval(input_dict)['rocauc']
-    return rocauc
 
-def calc_acc(loader, predictor):
-    acc = 0.
-    for graph in loader:
-        graph.to(device)
-        graph.y = graph.y.squeeze()
-        pred_out = predictor(x=graph.x, edge_index=graph.edge_index,
-                             edge_attr=graph.edge_attr, batch=graph.batch)
-        acc += torch.sum(pred_out.argmax(-1).view(-1) == graph.y.view(-1))
-    acc = float(acc) / len(loader.dataset)
-    return acc
-
-def calc_acc_bigcn(loader, predictor):
-    acc = 0.
-    for graph in loader:
-        graph.to(device)
-        graph.y = graph.y.squeeze()
-        pred_out = predictor(graph)
-        acc += torch.sum(pred_out.argmax(-1).view(-1) == graph.y.view(-1))
-    acc = float(acc) / len(loader.dataset)
-    return acc
-
-def calc_acc_gacl(loader, predictor):
-    acc = 0.
-    for graph in loader:
-        graph.to(device)
-        pred1, pred2, y1, y2, _ = predictor(graph)
-        acc1 = torch.sum(pred1.argmax(-1).view(-1) == y1.view(-1))
-        acc2 = torch.sum(pred2.argmax(-1).view(-1) == y2.view(-1))
-        acc += (acc1+acc2)/2.
-    acc = float(acc) / len(loader.dataset)
-    return acc
-        
-    
-
-def cal_evaluation(loader, predictor):
+def evaluation(loader, predictor):
+    # return the evaluation report, acc and f1 score.  
     true, pred = [], []
     for graph in loader:
         graph.to(device)
@@ -74,7 +23,10 @@ def cal_evaluation(loader, predictor):
         pred.append(pred_out.argmax(-1).view(-1).detach().cpu().numpy())
         true.append(graph.y.view(-1).detach().cpu().numpy())
     evaluation_res = sk.classification_report(np.concatenate(true), np.concatenate(pred), digits=4)
-    return evaluation_res
+    acc = sk.accuracy_score(np.concatenate(true), np.concatenate(pred))
+    f1 = sk.f1_score(np.concatenate(true), np.concatenate(pred), average='macro')
+    return evaluation_res, acc, f1
+
 
 def calc_evaluation_gacl(loader, predictor):
     true, pred = [], []

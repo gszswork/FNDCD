@@ -9,7 +9,7 @@ from torch_geometric.data import DataLoader
 from tqdm import tqdm
 from .models import create_model, LSM, CosineLSM
 from torch_geometric.nn import global_max_pool
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GATConv as GCNConv
 from .overloader import overload
 import copy
 from utils.helper import rand_prop, consis_loss
@@ -82,9 +82,9 @@ class BUrumorGCN(torch.nn.Module):
         x= scatter_mean(x, data.batch, dim=0)
         return x
 
-class BiGCN(torch.nn.Module):
+class GAT(torch.nn.Module):
     def __init__(self,in_feats,hid_feats,out_feats):
-        super(BiGCN, self).__init__()
+        super(GAT, self).__init__()
         self.TDrumorGCN = TDrumorGCN(in_feats, hid_feats, out_feats)
         self.BUrumorGCN = BUrumorGCN(in_feats, hid_feats, out_feats)
 

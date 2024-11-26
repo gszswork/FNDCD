@@ -24,7 +24,7 @@ device =torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 class Causal_NN(torch.nn.Module):
-    def __init__(self, in_channels,  gnn_model, num_classes=2, args=None):
+    def __init__(self, gnn_model, args=None):
         """
         in_channels: input feature dim, 
         num_classes: classification dim, 
@@ -32,7 +32,7 @@ class Causal_NN(torch.nn.Module):
         """
         super().__init__()
 
-        self.num_classes = num_classes
+        self.num_classes = args.out_channels
         self.prior_ratio = args.prior_ratio
 
         # for grand
@@ -44,13 +44,11 @@ class Causal_NN(torch.nn.Module):
         self.grand = args.grand
 
         self.gnn_model = gnn_model
-        # self.gnn_model = create_model(args.backbone, in_channels, args.channels, args.num_unit, args.dropout, args.dropedge, args.bn)
-        # TODO: If the model created contains a MLP output layer?  -NO
-        self.structure_model = LSM(in_channels, args.channels, args.dropout, args.neg_ratio)
+        self.structure_model = LSM(args.in_channels, args.channels, args.dropout, args.neg_ratio)
         self.out_mlp = torch.nn.Sequential(
-            Linear((args.channels + args.channels)*2, 2 * args.channels),
+            Linear(args.channels, 2 * args.channels),
             ReLU(),
-            Linear(2 * args.channels, num_classes)
+            Linear(2 * args.channels, self.num_classes)
         )
         self.CELoss = torch.nn.CrossEntropyLoss(reduction='none')
         self.KLDivLoss = torch.nn.KLDivLoss(reduction='batchmean')
@@ -76,6 +74,7 @@ class Causal_NN(torch.nn.Module):
         graph_rep = self.get_graph_rep(graph)
         # Keep the structure of BiGCN, the prediction labels are returned. 
         # graph_rep = global_max_pool(node_rep, batch)
+
         pred = self.out_mlp(graph_rep)
         return pred
 
@@ -134,63 +133,7 @@ class Causal_NN(torch.nn.Module):
         loss_train = loss_train / self.K
         loss_consis = consis_loss(output_list, self.temp)
         return loss_train + self.lam * loss_consis
-
-    def get_graphde_v_loss(self, x, edge_index, edge_attr, batch, idx, y):
-        # get environment variable value
-        e_prob = self.Softmax(self.e_logits)[idx, :]
-        e_log_prob = e_prob.log()
-        e_in, e_out = e_prob[:, 0], e_prob[:, 1]  # The probability to be in-dis and out-dis.
-
-        graph_rep = self.get_graph_rep(x, edge_index, edge_attr, batch)  # gnn + pooling.
-        pred = self.get_pred(graph_rep)  # graph rep --MLP==> label pred.
-        graph_reg_loss = self.structure_model.get_reg_loss(x, edge_index, batch)
-
-        # calculate kl loss
-        kl_loss = self.get_kl_loss(e_log_prob)
-
-        # calculate in-distribution loss
-        inlier_pred_loss = torch.mean(e_in * self.CELoss(pred, y))
-        inlier_reg_loss = torch.mean(e_in * graph_reg_loss)
-
-        # the outlier prob is assumed to be uniform
-        uni_logprob_pred = torch.full((len(y),), 1 / self.num_classes, device=y.device).log()
-        outlier_pred_loss = torch.mean(e_out * -uni_logprob_pred)
-        uni_logprob_reg = torch.full((len(y),), 1 / 2, device=x.device).log()
-        outlier_reg_loss = torch.mean(e_out * -uni_logprob_reg)
-
-        inlier_loss = inlier_pred_loss + inlier_reg_loss
-        outlier_loss = outlier_pred_loss + outlier_reg_loss
-
-        return inlier_loss + outlier_loss + kl_loss
-
-    def get_graphde_v_loss1(self, graph):
-        # get environment variable value
-        e_prob = self.Softmax(self.e_logits)[graph.idx, :]
-        e_log_prob = e_prob.log()
-        e_in, e_out = e_prob[:, 0], e_prob[:, 1]  # The probability to be in-dis and out-dis.
-
-        graph_rep = self.get_graph_rep(graph)
-        pred = self.get_pred(graph_rep)  # graph rep --MLP==> label pred. 
-        graph_reg_loss = self.structure_model.get_reg_loss(graph.x, graph.edge_index, graph.batch)
-
-        # calculate kl loss
-        kl_loss = self.get_kl_loss(e_log_prob)
-
-        # calculate in-distribution loss
-        inlier_pred_loss = torch.mean(e_in * self.CELoss(pred, graph.y))
-        inlier_reg_loss = torch.mean(e_in * graph_reg_loss)
-
-        # the outlier prob is assumed to be uniform
-        uni_logprob_pred = torch.full((len(graph.y),), 1 / self.num_classes, device=graph.y.device).log()
-        outlier_pred_loss = torch.mean(e_out * -uni_logprob_pred)
-        uni_logprob_reg = torch.full((len(graph.y),), 1 / 2, device=graph.x.device).log()
-        outlier_reg_loss = torch.mean(e_out * -uni_logprob_reg)
-
-        inlier_loss = inlier_pred_loss + inlier_reg_loss
-        outlier_loss = outlier_pred_loss + outlier_reg_loss
-
-        return inlier_loss + outlier_loss + kl_loss
-        
+   
 
     def get_graphde_a_loss1(self, graph):
         graph_neglogprob = self.structure_model.get_reg_loss(graph.x, graph.edge_index, graph.batch)
