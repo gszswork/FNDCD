@@ -6,7 +6,7 @@ Fake News Detection via Causal Debiasing. As a plugging-in module on existing gr
 # Model 
 ![](./figures/model.drawio.png)
 
-# Train 
+# Run
 
 There are three selectable graph neural network backbones: BiGCN, GIN and GCNii; and two training data sources: Twitter and Weibo. 
 
@@ -15,4 +15,5 @@ To select the backbones and the training sources, follow the commands (e.g. trai
 `
 python main --gnn_model 'BiGCN' --data_source 'Twitter'
 `
-# Pre-trained Results
+
+Trained models will be evaluated on Twitter-COVID19 and Weibo-COVID19 datasets. 
