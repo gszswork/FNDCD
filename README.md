@@ -18,10 +18,16 @@ https://www.dropbox.com/sh/raz6unw2lswcy54/AADNsc-ifBoAfN1wwyVvgch-a?dl=0
 Download the above datasets. Use `mkdir data` to create a new folder and unzip these datasets into the '/data' folder. 
 
 
- You can retrieve the ids from these 4 datasets. In case you're not familar with the datasets, I've uploaded the ids in the '/data' folder. 
+You can retrieve the ids from these 4 datasets. In case you're not familar with the datasets, I've uploaded the ids in the '/data' folder. 
 
 
+### Mini Version of the datasets
 
+If you feel the datasets are too huge to download and only want some boot tests. Here is a mini (cropped) version of the datasets with only 100 earlier nodes in each propagation. 
+
+`
+https://drive.google.com/file/d/1mcEtlKV9-NJaZAKheR5NJeb1apFqwdb0/view?usp=sharing
+`
 
 ## Run
 
