@@ -15,7 +15,12 @@ Fake News Detection via Causal Debiasing. As a plugging-in module on existing gr
 https://drive.google.com/drive/folders/1gvuSeorLAljGZaD7gyWrUA0gyotT_rl6?usp=drive_link
 `
 
-Download the above datasets. You can retrieve the ids from these 4 datasets. In case you're not familar with the datasets, I've uploaded the ids in the '/datasets' folder. 
+Download the above datasets. Use `mkdir data` to create a new folder and unzip these datasets into the '/data' folder. 
+
+
+ You can retrieve the ids from these 4 datasets. In case you're not familar with the datasets, I've uploaded the ids in the '/data' folder. 
+
+
 
 
 ## Run
