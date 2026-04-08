@@ -12,7 +12,7 @@ Fake News Detection via Causal Debiasing. As a plugging-in module on existing gr
 
 ## Dataset and Reproduce
 `
-https://drive.google.com/drive/folders/1gvuSeorLAljGZaD7gyWrUA0gyotT_rl6?usp=drive_link
+https://www.dropbox.com/sh/raz6unw2lswcy54/AADNsc-ifBoAfN1wwyVvgch-a?dl=0
 `
 
 Download the above datasets. Use `mkdir data` to create a new folder and unzip these datasets into the '/data' folder. 
