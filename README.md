@@ -10,6 +10,14 @@ Fake News Detection via Causal Debiasing. As a plugging-in module on existing gr
 ## Model 
 ![](./figures/model.drawio.png)
 
+## Dataset and Reproduce
+`
+https://drive.google.com/drive/folders/1gvuSeorLAljGZaD7gyWrUA0gyotT_rl6?usp=drive_link
+`
+
+Download the above datasets. You can retrieve the ids from these 4 datasets. In case you're not familar with the datasets, I've uploaded the ids in the '/datasets' folder. 
+
+
 ## Run
 
 There are three selectable graph neural network backbones: BiGCN, GIN and GCNii; and two training data sources: Twitter and Weibo. 
